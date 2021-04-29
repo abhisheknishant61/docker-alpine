@@ -50,6 +50,7 @@ jobs:
          # command: ./build commit $(circleci tests glob versions/**/options | circleci tests split)
      # - store_artifacts:
       #    path: images
+      - run: apt-get install curl
       - run: mkdir -vp ~/.docker/cli-plugins/
       - run: curl --silent -L --output ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
       - run: chmod a+x ~/.docker/cli-plugins/docker-buildx
