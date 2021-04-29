@@ -57,6 +57,6 @@ jobs:
       - run: chmod a+x ~/.docker/cli-plugins/docker-buildx
       #- run: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
       - run: docker run -it --rm --privileged tonistiigi/binfmt --install all
-      - run: docker buildx create --use --name mybuilder
+      #- run: docker buildx create --use --name mybuilder
       - run: |
           docker buildx build --push --platform linux/arm64,linux/amd64 -t logspout:${CIRCLE_BRANCH} -t logspout:latest -f ./builder/Dockerfile .        
