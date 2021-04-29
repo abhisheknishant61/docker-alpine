@@ -6,10 +6,10 @@ jobs:
       ignore:
         - /rootfs\/.*/
     docker:
-      - image: docker:19.03.13
+      - image: docker:latest
     steps:
       - setup_remote_docker:
-          version: 19.03.13
+          version: latest
       - checkout
       - add_ssh_keys
       - restore_cache:
