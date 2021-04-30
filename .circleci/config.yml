@@ -1,23 +1,52 @@
 version: 2
 jobs:
-  publish:
-    machine:
-      image: ubuntu-1604:202007-01
-    #working_directory: /home/circleci/logspout
-    environment:
-      DEBUG: true
+  build:
+    parallelism: 4
+    branches:
+      ignore:
+        - /rootfs\/.*/
+    docker:
+      - image: docker:17.03.0-ce
     steps:
+      - setup_remote_docker:
+          version: 17.03.0-ce
       - checkout
-      - run: mkdir -vp ~/.docker/cli-plugins/
-      - run: curl --silent -L --output ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
-      - run: chmod a+x ~/.docker/cli-plugins/docker-buildx
-      - run: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      - run: docker run -it --rm --privileged tonistiigi/binfmt --install all
-      - run: docker buildx create --use --name mybuilder
-      - run: |
-          cd builder && docker buildx build --push --platform linux/arm64,linux/amd64 -t ${DOCKER_USERNAME}/docker_alpine:arm_latest .
-workflows:
-  version: 2
-  build_and_publish:
-    jobs:
-      - publish
+      - add_ssh_keys
+      - restore_cache:
+          key: deps
+      - run:
+          name: install bash
+          command: apk --no-cache add bash git openssh-client xz
+      - run:
+          name: avoid hosts unknown for github
+          command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
+          name: install bats
+          command: |
+            if [[ ! -e ~/deps/bats_v0.4.0.tar.gz ]]; then mkdir -p ~/deps; curl -sSL -o ~/deps/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz; fi
+            tar -xf ~/deps/bats_v0.4.0.tar.gz
+            bats-0.4.0/install.sh /usr/local
+      - save_cache:
+          key: deps
+          paths:
+            - ~/deps
+      - run:
+          shell: /bin/bash -eo pipefail -O globstar
+          name: build images
+          command: ./build $(circleci tests glob versions/**/options | circleci tests split)
+      - run:
+          shell: /bin/bash -eo pipefail -O globstar
+          name: test images
+          command: ./build test $(circleci tests glob versions/**/options | circleci tests split)
+      - run:
+          shell: /bin/bash -eo pipefail -O globstar
+          name: push images
+          command: |
+            if [[ "$CIRCLE_BRANCH" == "release" ]]; then docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD; fi
+            ./build push $(circleci tests glob versions/**/options | circleci tests split)
+      - run:
+          shell: /bin/bash -eo pipefail -O globstar
+          name: commit artifacts
+          command: ./build commit $(circleci tests glob versions/**/options | circleci tests split)
+      - store_artifacts:
+          path: images
