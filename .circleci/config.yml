@@ -67,8 +67,4 @@ workflows:
   build_and_publish:
     jobs:
       - build
-          parallelism: 4
-          branches:
-            ignore:
-              - /rootfs\/.*/
       - publish
