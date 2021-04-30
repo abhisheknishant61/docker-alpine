@@ -19,7 +19,15 @@ usage() {
 }
 
 build() {
-	declare mirror="$1" rel="$2" packages=("${3:-alpine-base}") arch="${4:-x86_64}"
+	if [ `uname -m` = "aarch64" ]
+         then
+        declare mirror="$1" rel="$2" packages=("${3:-alpine-base}") arch="${4:-aarch64}"
+         echo Hey that\'s a large number.
+         else
+         declare mirror="$1" rel="$2" packages=("${3:-alpine-base}") arch="${4:-x86_64}"
+        echo This is regarding x86 machine.
+        fi
+
 
 	local rootfs
 	rootfs="$(mktemp -d "${TMPDIR:-/var/tmp}/alpine-docker-rootfs-XXXXXXXXXX")"
