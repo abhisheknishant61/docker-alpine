@@ -3,7 +3,7 @@ jobs:
   publish:
     machine:
       image: ubuntu-1604:202007-01
-    working_directory: /home/circleci/logspout
+    #working_directory: /home/circleci/logspout
     environment:
       DEBUG: true
     steps:
@@ -15,7 +15,7 @@ jobs:
       - run: docker run -it --rm --privileged tonistiigi/binfmt --install all
       - run: docker buildx create --use --name mybuilder
       - run: |
-          docker buildx build --push --platform linux/arm64,linux/amd64 -t logspout:${CIRCLE_BRANCH} -t logspout:latest -f ./builder/Dockerfile .
+          docker buildx build --push --platform linux/arm64,linux/amd64 -t docker_alpine:arm_latest -t docker_alpine:latest -f ./builder/Dockerfile .
 workflows:
   version: 2
   build_and_publish:
