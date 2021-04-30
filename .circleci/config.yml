@@ -14,9 +14,8 @@ jobs:
       #- run: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
       - run: docker run -it --rm --privileged tonistiigi/binfmt --install all
       - run: docker buildx create --use --name mybuilder
-      - run: cd builder
       - run: |
-          docker buildx build --push --platform linux/arm64,linux/amd64 -t docker_alpine:arm_latest -t docker_alpine:latest .
+          docker buildx build --push --platform linux/arm64,linux/amd64 -t docker_alpine:arm_latest -t docker_alpine:latest -f ./builder .
 workflows:
   version: 2
   build_and_publish:
